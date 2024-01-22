@@ -1,7 +1,8 @@
 import { lazy } from 'react';
 import React from 'react'
 import useAuth from './hooks/useAuth';
-import { useRoutes } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate, useRoutes } from 'react-router-dom';
 import AuthGuard from './auth/AuthGuard';
 import Loadable from './components/Loadable';
 import MatxLayout from './components/MatxLayout/MatxLayout';
@@ -25,9 +26,26 @@ const Slip = Loadable(lazy(() => import('./views/hajj/Slip')));
 
 const MyComponent = () => {
 
-  const { user } = useAuth();
+  const { user,lastActive,registerLastActive} = useAuth();
   const userRole = user?.authorities?.[0]?.authority || '';
+  const router = useNavigate()
   
+  useEffect(()=>{
+    document.addEventListener("mouseover",(ev)=>{
+      ev.stopPropagation()
+      console.log("moved")
+      if(user){
+        const minutes = ((Date.now()-lastActive)/1000)/60
+        if(minutes>=2){
+          localStorage.removeItem("token")
+          router("/signin")
+        }
+        else{
+          registerLastActive()
+        }
+      }
+    })
+  },[user])
 
   let routes = []
 

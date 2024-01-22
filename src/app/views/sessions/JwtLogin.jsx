@@ -1,4 +1,5 @@
 import { LoadingButton } from '@mui/lab';
+import { useEffect } from 'react';
 import { Card, Checkbox, Grid, TextField } from '@mui/material';
 import { Box, styled, useTheme } from '@mui/material';
 import { Paragraph } from 'app/components/Typography';
@@ -8,6 +9,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import swal from "sweetalert";
 import { NavLink, useNavigate } from 'react-router-dom';
+import { jwtDecode } from "jwt-decode";
 import * as Yup from 'yup';
 
 
@@ -79,11 +81,26 @@ const JwtLogin = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
+  const router = useNavigate()
   const { login } = useAuth();
 
+  useEffect(()=>{
+    if(localStorage.getItem("token")){
+      const token = localStorage.getItem("token").split(" ")[1]
+      const decoded = jwtDecode(token);
+      const time = new Date(decoded.exp).getTime();
+      const currentTime = parseInt((new Date().getTime()/1000).toFixed(0))
+      if(time>currentTime){
+        router("/dashboard")
+      }
+    }
+
+  },[])
+
+  
+
   const handleFormSubmit = async (values) => {
-   // console.log("handleFormSubmit is clicked!!!!")
+   
     
     const response =  login({
       username,
@@ -115,7 +132,7 @@ const JwtLogin = () => {
           // localStorage.setItem("accessToken", response["accessToken"]);
           // localStorage.setItem("sAMAccountName", response["sAMAccountName"]);
           // localStorage.setItem("user", JSON.stringify(response["user"]));
-          window.location.href = "/dashboard";
+          router("/dashboard")
         })
         .catch((err) => {
           console.log(err);

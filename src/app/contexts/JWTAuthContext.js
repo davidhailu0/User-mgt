@@ -5,6 +5,7 @@ import { getProfile } from 'app/service/PaymentService';
 
 const initialState = {
   user: null,
+  lastActive:Date.now(),
   isInitialised: false,
   isAuthenticated: false
 };
@@ -31,14 +32,14 @@ const reducer = (state, action) => {
   switch (action.type) {
     case 'INIT': {
       const { isAuthenticated, user } = action.payload;
-      return { ...state, isAuthenticated, isInitialised: true, user };
+      return { ...state, isAuthenticated, isInitialised: true, user,lastActive:Date.now() };
     }
 
     case 'LOGIN': {
       //console.log(action.payload)
       const { user } = action.payload;
       //console.log(user.username)
-      return { ...state, isAuthenticated: true, user };
+      return { ...state, isAuthenticated: true, user,lastActive:Date.now() };
     }
 
     case 'LOGOUT': {
@@ -51,6 +52,10 @@ const reducer = (state, action) => {
       return { ...state, isAuthenticated: true, user };
     }
 
+    case 'LASTACTIVE':{
+      return {...state,lastActive:Date.now()}
+    }
+
     default:
       return state;
   }
@@ -61,7 +66,8 @@ const AuthContext = createContext({
   method: 'JWT',
   login: () => {},
   logout: () => {},
-  register: () => {}
+  register: () => {},
+  registerLastActive:()=>{}
 });
 
 export const AuthProvider = ({ children }) => {
@@ -70,9 +76,6 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
 
     const apiURL = process.env.REACT_APP_API_URL+ "/api/auth/login";
-    const formData = new FormData()
-    formData.append('username',credentials.username)
-    formData.append('password',credentials.password)
     
     try {
       const response = await fetch(apiURL, {
@@ -95,7 +98,6 @@ export const AuthProvider = ({ children }) => {
         const { user,token } = responseData; // Access the 'data' property directly
         // console.log('user', token);
          localStorage.setItem("token", 'Bearer ' + token);
-        
    
         dispatch({ type: 'LOGIN', payload: { user:user } });
         return responseData;
@@ -124,6 +126,10 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'LOGOUT' });
   };
 
+  const registerLastActive = ()=>{
+    dispatch({type:'LASTACTIVE'})
+  }
+
   useEffect(() => {
     (async () => {
       try {
@@ -150,7 +156,7 @@ export const AuthProvider = ({ children }) => {
   if (!state.isInitialised) return <MatxLoading />;
 
   return (
-    <AuthContext.Provider value={{ ...state, method: 'JWT', login, logout, register }}>
+    <AuthContext.Provider value={{ ...state, method: 'JWT', login, logout, register,registerLastActive }}>
       {children}
     </AuthContext.Provider>
   );
