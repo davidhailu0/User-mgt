@@ -33,7 +33,6 @@ const MyComponent = () => {
   useEffect(()=>{
     document.addEventListener("mouseover",(ev)=>{
       ev.stopPropagation()
-      console.log("moved")
       if(user){
         const minutes = ((Date.now()-lastActive)/1000)/60
         if(minutes>=2){
