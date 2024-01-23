@@ -6,6 +6,7 @@ import { useNavigate, useRoutes } from 'react-router-dom';
 import AuthGuard from './auth/AuthGuard';
 import Loadable from './components/Loadable';
 import MatxLayout from './components/MatxLayout/MatxLayout';
+import { jwtDecode } from "jwt-decode";
 
 // session pages
 const NotFound = Loadable(lazy(() => import('app/views/sessions/NotFound')));
@@ -31,6 +32,18 @@ const MyComponent = () => {
   const router = useNavigate()
   
   useEffect(()=>{
+    if(localStorage.getItem("token")){
+    const token = localStorage.getItem("token").split(" ")[1]
+    const decoded = jwtDecode(token);
+    const time = new Date(decoded.exp*1000).getTime();
+    const currentTime = new Date().getTime()
+    console.log(time,currentTime)
+    clearTimeout()
+        setTimeout(()=>{
+          localStorage.removeItem("token")
+          router("/signin")
+       },time-currentTime)
+    }
     document.addEventListener("mouseover",(ev)=>{
       ev.stopPropagation()
       if(user){

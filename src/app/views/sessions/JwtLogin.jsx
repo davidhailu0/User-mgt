@@ -82,20 +82,30 @@ const JwtLogin = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const router = useNavigate()
-  const { login } = useAuth();
+  const { login,isAuthenticated,user } = useAuth();
 
   useEffect(()=>{
-    if(localStorage.getItem("token")){
+    if(localStorage.getItem("token")&&isAuthenticated&&user){
       const token = localStorage.getItem("token").split(" ")[1]
       const decoded = jwtDecode(token);
-      const time = new Date(decoded.exp).getTime();
-      const currentTime = parseInt((new Date().getTime()/1000).toFixed(0))
+      const time = new Date(decoded.exp*1000).getTime();
+      const currentTime = new Date().getTime()
       if(time>currentTime){
+        clearTimeout()
+        setTimeout(()=>{
+          localStorage.removeItem("token")
+          router("/signin")
+       },time-currentTime)
         router("/dashboard")
       }
+      else{
+        localStorage.removeItem("token")
+        router("/signin")
+      }
+      
     }
 
-  },[])
+  },[isAuthenticated,user])
 
   
 
